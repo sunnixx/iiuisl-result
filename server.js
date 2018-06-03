@@ -53,9 +53,15 @@ app.get('/api/protected/result', ensureToken, (req, res) => {
     User.findById(req.query.id, (err, user) => {
       if (err) res.send('username not found in db');
 
-      let data = fs.readFileSync(user.filepath);
-      res.contentType('application/pdf');
-      res.send(data);
+      try{
+        let data = fs.readFileSync(user.filepath);
+        res.contentType('application/pdf');
+        res.send(data);
+
+      } catch(err) {
+        res.send("No result file was found, try to login again or contact the adminstrator for further help");
+      }
+
     })
   })
 })

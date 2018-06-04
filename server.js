@@ -26,24 +26,28 @@ app.post('/api/public/login', (req, res, done) => {
   const username = req.body.username;
   const password = req.body.password;
 
-  User.findOne({ username: username }, (err, user) => {
-    if (err) return done(err);
+  if(username !== undefined && password !== undefined) {
 
-    if (!user) {
-      res.sendStatus(403);
-    }
+    User.findOne({ username: username }, (err, user) => {
+      if (err) return done(err);
+  
+      if (!user) {
+        res.send("username was not found, press back to login again or contact Administration");
+      }
+  
+      if (user.password !== password) {
+        res.send("Invalid password");
+      } else {
+        const token = jwt.sign({ username: username, password: password }, process.env.TOKEN_KEY);
+  
+        process.env.TOKEN = token;
+  
+        res.redirect(`/api/protected/result?id=${user._id}`)
+  
+      }
+    })
+  }
 
-    if (user.password !== password) {
-      res.sendStatus(403);
-    } else {
-      const token = jwt.sign({ username: username, password: password }, process.env.TOKEN_KEY);
-
-      process.env.TOKEN = token;
-
-      res.redirect(`/api/protected/result?id=${user._id}`)
-
-    }
-  })
 })
 
 app.get('/api/protected/result', ensureToken, (req, res) => {
@@ -72,5 +76,5 @@ function ensureToken(req, res, next) {
 }
 
 app.listen(process.env.PORT || config.port, (err) => {
-  if (err) throw err;
+  if(err) console.log(err);
 })
